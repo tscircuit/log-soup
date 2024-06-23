@@ -31,6 +31,7 @@ export const logSoup = async (
   layout_group_name: string,
   objects: Array<any>
 ) => {
+  if (typeof process !== "undefined" && process.env.CI) return
   if (layout_server_healthy === false) return
 
   if (layout_server_healthy === null) {
@@ -46,25 +47,20 @@ export const logSoup = async (
     }
   }
 
-  for (const layout_name of ["schematic", "pcb"]) {
+  for (const layout_name of ["all"]) {
     await axios.post("/api/soup_group/add_soup", {
       soup_group_name: layout_group_name,
       soup_name: layout_name,
       username: "tmp",
       content: {
-        elements: objects
-          .filter((o) => o.type?.includes(layout_name))
-          .map((o: any) => ({
-            ...o,
-            source: findSource(o, objects),
-          })),
+        elements: objects,
       },
     })
   }
 
   return {
-    soup_schematic_url: `${DEBUG_SRV}/soup_group/${layout_group_name}#selected_layout_index=0&selected_engine=schematic_renderer`,
-    soup_pcb_url: `${DEBUG_SRV}/soup_group/${layout_group_name}#selected_layout_index=1&selected_engine=pcb_renderer`,
-    soup_pcb_debug_url: `${DEBUG_SRV}/soup_group/${layout_group_name}#selected_layout_index=1&selected_engine=debug_renderer`,
+    soup_schematic_url: `${DEBUG_SRV}/soup_group/${layout_group_name}#selected_engine=schematic_renderer`,
+    soup_pcb_url: `${DEBUG_SRV}/soup_group/${layout_group_name}#selected_engine=pcb_renderer`,
+    soup_pcb_debug_url: `${DEBUG_SRV}/soup_group/${layout_group_name}#selected_engine=debug_renderer`,
   }
 }
